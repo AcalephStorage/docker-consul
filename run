@@ -2,14 +2,19 @@
 
 set -e
 
-NODE_NAME=${NODE_NAME:-"$(hostname)"}
-BOOTSTRAP_EXPECT=${BOOTSTRAP_EXPECT:-"1"}
+NODE=$(hostname -s)
+if [[ $NODE_NAME != "localhost" ]]; then
+  NODE=$NODE_NAME
+fi
 
-SERVER=${SERVER:-"FALSE"}
 SERVER_ARGS=""
-
 if [[ $SERVER == "TRUE" ]]; then
   SERVER_ARGS="-server --bootstrap-expect=${BOOTSTRAP_EXPECT}"
 fi
 
-exec /usr/bin/consul agent -bind=0.0.0.0 -client=0.0.0.0 -config-dir=/etc/consul.d -data-dir=/var/lib/consul -node=${NODE_NAME} ${SERVER_ARGS}
+JOIN_ARGS=""
+if [[ $JOIN_CLUSTER == "TRUE" ]]; then
+  JOIN_ARGS="-join=$JOIN_ADDR"
+fi
+
+exec /usr/bin/consul agent -bind=$BIND_ADDR -client=$CLIENT_ADDR -config-dir=/etc/consul.d -data-dir=/var/lib/consul -node=${NODE} ${SERVER_ARGS} ${JOIN_ARGS}
